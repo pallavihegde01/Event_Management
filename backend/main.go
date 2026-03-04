@@ -37,16 +37,16 @@ func main() {
 	// Open SQLite database (creates file if not exists)
 	db, err = sql.Open("sqlite3", "events.db")
 	if err != nil {
-		log.Fatalf("❌ Failed to open database: %v\n", err)
+		log.Fatalf("Failed to open database: %v\n", err)
 	}
 	defer db.Close()
 
 	// Test DB connection
 	if err := db.Ping(); err != nil {
-		log.Fatalf("❌ Database connection failed: %v\n", err)
+		log.Fatalf("Database connection failed: %v\n", err)
 	}
 
-	log.Println("✅ Database connected successfully")
+	log.Println("Database connected successfully")
 
 	// Create table if not exists
 	createTable()
@@ -55,9 +55,9 @@ func main() {
 	http.HandleFunc("/api/v1/events", corsMiddleware(createEvent))
 	http.HandleFunc("/api/v1/events/", corsMiddleware(getEvent))
 
-	log.Println("🚀 Server running on http://localhost:8081")
+	log.Println("Server running on http://localhost:8081")
 	if err := http.ListenAndServe(":8081", nil); err != nil {
-		log.Fatalf("❌ Server failed: %v\n", err)
+		log.Fatalf("Server failed: %v\n", err)
 	}
 }
 
@@ -80,9 +80,9 @@ func createTable() {
 		is_public BOOLEAN
 	);`
 	if _, err := db.Exec(query); err != nil {
-		log.Fatalf("❌ Failed to create table: %v\n", err)
+		log.Fatalf("Failed to create table: %v\n", err)
 	}
-	log.Println("✅ Table checked/created")
+	log.Println("Table checked/created")
 }
 
 // CORS middleware to allow frontend fetches
