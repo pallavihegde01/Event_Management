@@ -12,102 +12,122 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// Event represents the full event structure for frontend
 type Event struct {
-	ID        int       `json:"id"`
-	Title     string    `json:"title"`
-	Type      string    `json:"type"`
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
-	IsPublic  bool      `json:"is_public"`
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Company     string    `json:"company"`
+	Description string    `json:"description"`
+	StartTime   time.Time `json:"start_time"`
+	EndTime     time.Time `json:"end_time"`
+	Status      string    `json:"status"`
+	Venue       string    `json:"venue"`
+	Organizers  string    `json:"organizers"`
+	BookingLink string    `json:"bookingLink"`
+	Source      string    `json:"source"`
+	Verified    bool      `json:"verified"`
+	IsPublic    bool      `json:"is_public"`
 }
 
 var db *sql.DB
 
 func main() {
-	log.Println("MAIN FUNCTION STARTED")
-
 	var err error
 
+	// Open SQLite database (creates file if not exists)
 	db, err = sql.Open("sqlite3", "events.db")
 	if err != nil {
-		log.Fatal("Database open error:", err)
+		log.Fatalf("❌ Failed to open database: %v\n", err)
+	}
+	defer db.Close()
+
+	// Test DB connection
+	if err := db.Ping(); err != nil {
+		log.Fatalf("❌ Database connection failed: %v\n", err)
 	}
 
-	err = db.Ping()
-	if err != nil {
-		log.Fatal("Database ping error:", err)
-	}
+	log.Println("✅ Database connected successfully")
 
+	// Create table if not exists
 	createTable()
 
-	http.HandleFunc("/api/v1/events", createEvent)
-	http.HandleFunc("/api/v1/events/", getEvent)
+	// Register HTTP handlers
+	http.HandleFunc("/api/v1/events", corsMiddleware(createEvent))
+	http.HandleFunc("/api/v1/events/", corsMiddleware(getEvent))
 
-	log.Println("Server running on http://localhost:8081")
-
-	err = http.ListenAndServe(":8081", nil)
-	if err != nil {
-		log.Fatal("Server error:", err)
+	log.Println("🚀 Server running on http://localhost:8081")
+	if err := http.ListenAndServe(":8081", nil); err != nil {
+		log.Fatalf("❌ Server failed: %v\n", err)
 	}
 }
 
+// Create table with all necessary fields
 func createTable() {
 	query := `
 	CREATE TABLE IF NOT EXISTS events (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT,
-		type TEXT,
+		company TEXT,
+		description TEXT,
 		start_time TEXT,
 		end_time TEXT,
+		status TEXT,
+		venue TEXT,
+		organizers TEXT,
+		booking_link TEXT,
+		source TEXT,
+		verified BOOLEAN,
 		is_public BOOLEAN
-	);
-	`
+	);`
+	if _, err := db.Exec(query); err != nil {
+		log.Fatalf("❌ Failed to create table: %v\n", err)
+	}
+	log.Println("✅ Table checked/created")
+}
 
-	_, err := db.Exec(query)
-	if err != nil {
-		log.Fatal("Table creation error:", err)
+// CORS middleware to allow frontend fetches
+func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*") // allow any origin
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next(w, r)
 	}
 }
 
+// POST /api/v1/events
 func createEvent(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var input struct {
-		Title     string `json:"title"`
-		Type      string `json:"type"`
-		StartTime string `json:"start_time"`
-		EndTime   string `json:"end_time"`
-		IsPublic  bool   `json:"is_public"`
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
+	var input Event
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	start, err := time.Parse(time.RFC3339, input.StartTime)
-	if err != nil {
-		http.Error(w, "Invalid start_time format", http.StatusBadRequest)
-		return
-	}
-
-	end, err := time.Parse(time.RFC3339, input.EndTime)
-	if err != nil {
-		http.Error(w, "Invalid end_time format", http.StatusBadRequest)
-		return
-	}
-
-	result, err := db.Exec(
-		`INSERT INTO events (title, type, start_time, end_time, is_public)
-		 VALUES (?, ?, ?, ?, ?)`,
+	// Insert into database
+	result, err := db.Exec(`
+		INSERT INTO events
+		(title, company, description, start_time, end_time, status, venue, organizers, booking_link, source, verified, is_public)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		input.Title,
-		input.Type,
-		start.Format(time.RFC3339),
-		end.Format(time.RFC3339),
+		input.Company,
+		input.Description,
+		input.StartTime.Format(time.RFC3339),
+		input.EndTime.Format(time.RFC3339),
+		input.Status,
+		input.Venue,
+		input.Organizers,
+		input.BookingLink,
+		input.Source,
+		input.Verified,
 		input.IsPublic,
 	)
 	if err != nil {
@@ -116,21 +136,14 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, _ := result.LastInsertId()
-
-	event := Event{
-		ID:        int(id),
-		Title:     input.Title,
-		Type:      input.Type,
-		StartTime: start,
-		EndTime:   end,
-		IsPublic:  input.IsPublic,
-	}
+	input.ID = int(id)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(event)
+	json.NewEncoder(w).Encode(input)
 }
 
+// GET /api/v1/events/{id}
 func getEvent(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -139,21 +152,33 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.Path, "/")
 	idStr := parts[len(parts)-1]
-
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
-	var event Event
+	var e Event
 	var startStr, endStr string
 
-	err = db.QueryRow(
-		`SELECT id, title, type, start_time, end_time, is_public
-		 FROM events WHERE id = ?`, id).
-		Scan(&event.ID, &event.Title, &event.Type, &startStr, &endStr, &event.IsPublic)
-
+	err = db.QueryRow(`
+		SELECT id, title, company, description, start_time, end_time, status, venue, organizers, booking_link, source, verified, is_public
+		FROM events
+		WHERE id = ?`, id).Scan(
+		&e.ID,
+		&e.Title,
+		&e.Company,
+		&e.Description,
+		&startStr,
+		&endStr,
+		&e.Status,
+		&e.Venue,
+		&e.Organizers,
+		&e.BookingLink,
+		&e.Source,
+		&e.Verified,
+		&e.IsPublic,
+	)
 	if err == sql.ErrNoRows {
 		http.Error(w, "Event not found", http.StatusNotFound)
 		return
@@ -162,9 +187,9 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event.StartTime, _ = time.Parse(time.RFC3339, startStr)
-	event.EndTime, _ = time.Parse(time.RFC3339, endStr)
+	e.StartTime, _ = time.Parse(time.RFC3339, startStr)
+	e.EndTime, _ = time.Parse(time.RFC3339, endStr)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(event)
+	json.NewEncoder(w).Encode(e)
 }
