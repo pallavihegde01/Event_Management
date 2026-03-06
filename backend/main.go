@@ -52,8 +52,7 @@ func main() {
 	createTable()
 
 	// Register HTTP handlers
-	http.HandleFunc("/api/v1/events", corsMiddleware(createEvent))
-	http.HandleFunc("/api/v1/events/", corsMiddleware(getEvent))
+	http.HandleFunc("/api/v1/events/", corsMiddleware(handleEvent))
 
 	log.Println("Server running on http://localhost:8081")
 	if err := http.ListenAndServe(":8081", nil); err != nil {
@@ -100,8 +99,11 @@ func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 // POST /api/v1/events
-func createEvent(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+func handleEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		getEvent(w, r)
+		return
+	} else if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
