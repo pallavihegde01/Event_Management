@@ -52,6 +52,7 @@ func main() {
 	createTable()
 
 	// Register HTTP handlers
+	http.HandleFunc("/api/v1/events", corsMiddleware(handleEvents))
 	http.HandleFunc("/api/v1/events/", corsMiddleware(handleEvent))
 
 	log.Println("Server running on http://localhost:8081")
@@ -194,4 +195,52 @@ func getEvent(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(e)
+}
+
+// GET /api/v1/events
+func handleEvents(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	rows, err := db.Query(`
+	SELECT id, title, description, start_time, end_time, status
+	FROM events`)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer rows.Close()
+
+	var events []Event
+	var startStr, endStr string
+
+	for rows.Next() {
+		var e Event
+
+		err := rows.Scan(
+			&e.ID,
+			&e.Title,
+			&e.Description,
+			&startStr,
+			&endStr,
+			&e.Status,
+		)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		e.StartTime, _ = time.Parse(time.RFC3339, startStr)
+		e.EndTime, _ = time.Parse(time.RFC3339, endStr)
+
+		events = append(events, e)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(events)
 }

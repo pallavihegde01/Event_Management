@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaBell,
   FaSearch,
@@ -7,17 +7,35 @@ import {
   FaHeart,
   FaBookmark,
 } from "react-icons/fa";
-import { events } from "../constants/events";
+import { getEvents, Event } from "../constants/events";
 import months from "../constants/months";
 import { Link } from "react-router-dom";
 
 export default function HomePage() {
   const currentMonth = new Date().getMonth();
   const [selectedMonth, setSelectedMonth] = useState(months[currentMonth]);
+  const [events, setEvents] = useState<Event[]>([]);
 
-  const filteredEvents = events.filter(
-    (event) => event.month === selectedMonth,
-  );
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const data = await getEvents();
+        setEvents(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchEvents();
+  }, []);
+
+  const filteredEvents = events.filter((event) => {
+    const eventMonth = new Date(event.start_time).toLocaleString("default", {
+      month: "long",
+    });
+
+    return eventMonth === selectedMonth;
+  });
 
   const getStatusStyle = (status) => {
     switch (status.toLowerCase()) {
@@ -55,7 +73,9 @@ export default function HomePage() {
               <div key={event.id} className="bg-white rounded-xl shadow-sm p-4">
                 {/* Section 1 */}
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">{event.postedDate}</span>
+                  <span className="text-gray-500">
+                    {new Date(event.start_time).toDateString()}
+                  </span>
 
                   <div className="flex items-center space-x-3">
                     <FaHeart className="cursor-pointer text-gray-500 hover:text-red-500" />
@@ -90,9 +110,7 @@ export default function HomePage() {
                   <Link to="/event" className="text-blue-600 font-semibold">
                     More Details
                   </Link>
-                  <span className="text-gray-500">
-                    Last Updated: {event.updatedDate}
-                  </span>
+                  Last Updated: {new Date(event.end_time).toDateString()}
                 </div>
               </div>
             ))
