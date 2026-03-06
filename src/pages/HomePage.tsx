@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { events } from "../constants/events";
 import months from "../constants/months";
+import { Link } from "react-router-dom";
 
 export default function HomePage() {
   const currentMonth = new Date().getMonth();
@@ -86,9 +87,9 @@ export default function HomePage() {
 
                 {/* Section 3 */}
                 <div className="flex justify-between items-center mt-4 text-sm">
-                  <button className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700">
+                  <Link to="/event" className="text-blue-600 font-semibold">
                     More Details
-                  </button>
+                  </Link>
                   <span className="text-gray-500">
                     Last Updated: {event.updatedDate}
                   </span>
