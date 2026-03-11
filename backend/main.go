@@ -13,19 +13,19 @@ import (
 )
 
 type Event struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
-	Company     string    `json:"company"`
-	Description string    `json:"description"`
-	StartTime   time.Time `json:"start_time"`
-	EndTime     time.Time `json:"end_time"`
-	Status      string    `json:"status"`
-	Venue       string    `json:"venue"`
-	Organizers  string    `json:"organizers"`
-	BookingLink string    `json:"bookingLink"`
-	Source      string    `json:"source"`
-	Verified    bool      `json:"verified"`
-	IsPublic    bool      `json:"is_public"`
+    ID          int       `json:"id"`
+    Title       string    `json:"title"`
+    Company     string    `json:"company"`
+    Description string    `json:"description"`
+    StartTime   time.Time `json:"start_time"`
+    EndTime     time.Time `json:"end_time"`
+    Status      string    `json:"status"`
+    Venue       string    `json:"venue"`
+    Organizers  string    `json:"organizers"`
+    BookingLink string    `json:"booking_link"`
+    Source      string    `json:"source"`
+    Verified    bool      `json:"verified"`
+    IsPublic    bool      `json:"is_public"`
 }
 
 var db *sql.DB

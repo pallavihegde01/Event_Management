@@ -37,7 +37,7 @@ export default function HomePage() {
     return eventMonth === selectedMonth;
   });
 
-  const getStatusStyle = (status) => {
+  const getStatusStyle = (status : string) => {
     switch (status.toLowerCase()) {
       case "upcoming":
         return "bg-green-100 text-green-700";
@@ -107,7 +107,7 @@ export default function HomePage() {
 
                 {/* Section 3 */}
                 <div className="flex justify-between items-center mt-4 text-sm">
-                  <Link to="/event" className="text-blue-600 font-semibold">
+                  <Link to={`/event/${event.id}`} className="text-blue-600 font-semibold">
                     More Details
                   </Link>
                   Last Updated: {new Date(event.end_time).toDateString()}
@@ -135,11 +135,10 @@ export default function HomePage() {
                   key={month}
                   onClick={() => setSelectedMonth(month)}
                   className={`block w-full text-left text-sm px-2 py-1 rounded 
-            ${
-              selectedMonth === month
-                ? "bg-blue-100 text-blue-600 font-semibold"
-                : "hover:bg-gray-100"
-            }`}
+            ${selectedMonth === month
+                      ? "bg-blue-100 text-blue-600 font-semibold"
+                      : "hover:bg-gray-100"
+                    }`}
                 >
                   {month}
                 </button>

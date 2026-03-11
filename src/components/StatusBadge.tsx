@@ -1,4 +1,4 @@
-import { EventStatus } from "../constants/events";
+import { EventStatus } from "../constants/eventPage";
 
 interface StatusBadgeProps {
   status: EventStatus;

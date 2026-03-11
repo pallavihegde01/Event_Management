@@ -53,7 +53,7 @@ function EventCard({ event }: EventCardProps) {
           </div>
         </div>
         <div className="text-center">
-          
+          <a
             href={event.bookingLink}
             target="_blank"
             rel="noopener noreferrer"
