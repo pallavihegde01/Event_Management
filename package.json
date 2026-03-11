@@ -1,5 +1,5 @@
 {
-  "name": "sn-assignment",
+  "name": "event-management",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -24,7 +26,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.4",
+    "tailwindcss": "^3.4.19",
     "vite": "^7.3.1"
   }
 }

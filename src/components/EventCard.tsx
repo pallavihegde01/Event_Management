@@ -1,6 +1,6 @@
 import StatusBadge from "./StatusBadge";
 import QASection from "./QASection";
-import { EventType } from "../data/events";
+import { EventType } from "../constants/eventPage";
 
 interface EventCardProps {
   event: EventType;
@@ -9,7 +9,6 @@ interface EventCardProps {
 function EventCard({ event }: EventCardProps) {
   return (
     <div className="w-full bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden border border-blue-100">
-
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-8">
         <div className="flex justify-between items-start flex-wrap gap-4">
           <div>
@@ -20,10 +19,8 @@ function EventCard({ event }: EventCardProps) {
               Hosted by <span className="font-semibold">{event.company}</span>
             </p>
           </div>
-
           <StatusBadge status={event.status} />
         </div>
-
         {event.verified && (
           <p className="mt-3 text-sm font-semibold text-green-200">
             ✔ Verified Event
@@ -35,33 +32,28 @@ function EventCard({ event }: EventCardProps) {
           <h2 className="text-xl font-semibold mb-2 text-gray-800">
             About the Event
           </h2>
-          <p className="text-gray-600 leading-relaxed">
-            {event.description}
-          </p>
+          <p className="text-gray-600 leading-relaxed">{event.description}</p>
         </div>
         <div className="grid sm:grid-cols-2 gap-6 text-sm">
           <div className="bg-blue-50 p-4 rounded-xl">
             <p className="font-semibold text-gray-700">Date</p>
             <p className="text-gray-600">{event.date}</p>
           </div>
-
           <div className="bg-blue-50 p-4 rounded-xl">
             <p className="font-semibold text-gray-700">Time</p>
             <p className="text-gray-600">{event.time}</p>
           </div>
-
           <div className="bg-blue-50 p-4 rounded-xl">
             <p className="font-semibold text-gray-700">Venue</p>
             <p className="text-gray-600">{event.venue}</p>
           </div>
-
           <div className="bg-blue-50 p-4 rounded-xl">
             <p className="font-semibold text-gray-700">Organizer</p>
             <p className="text-gray-600">{event.organizers}</p>
           </div>
         </div>
         <div className="text-center">
-          <a
+          
             href={event.bookingLink}
             target="_blank"
             rel="noopener noreferrer"
@@ -74,7 +66,6 @@ function EventCard({ event }: EventCardProps) {
           Source: {event.source}
         </p>
         <QASection faqs={event.faqs} />
-
       </div>
     </div>
   );
